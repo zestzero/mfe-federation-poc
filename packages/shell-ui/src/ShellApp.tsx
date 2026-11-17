@@ -1,9 +1,16 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createShellRuntime } from "@poc/shell-state";
+import { FICTIONAL_USERS } from "@poc/test-support";
 import { SessionPanel } from "./SessionPanel";
 import { RemoteHost } from "./RemoteHost";
 import { ScenarioControls } from "./ScenarioControls";
 import { EventLog, appendEvent } from "./EventLog";
+import { ShellChrome } from "./ShellChrome";
 import type { ShellEvent, ShellUiProps } from "./types";
+
+const ROUTES = { "/orders": "react", "/summary": "vue" };
+const resolveUser = (subjectId: string) =>
+  FICTIONAL_USERS[subjectId as keyof typeof FICTIONAL_USERS] ?? null;
 
 export function ShellApp({
   diMode,
@@ -21,6 +28,21 @@ export function ShellApp({
   const [reactMounted, setReactMounted] = useState(true);
   const [vueMounted, setVueMounted] = useState(true);
   const [forceCleanupFail, setForceCleanupFail] = useState(false);
+
+  // ponytail: runtime created in useMemo and disposed in an effect. Fine without StrictMode (not enabled);
+  // under StrictMode the double effect run would dispose the memoized runtime and leave it dead.
+  // Upgrade path: create the runtime in a ref/effect (create on mount, dispose on unmount).
+  const runtime = useMemo(() => {
+    const created = createShellRuntime({ session, routes: ROUTES, resolveUser });
+    try {
+      // deep link: start from a valid path in the hash, ignore anything else
+      created.shellNavigate(location.hash.slice(1));
+    } catch {
+      // keep the default path
+    }
+    return created;
+  }, [session]);
+  useEffect(() => () => runtime.dispose(), [runtime]);
 
   const pushEvent = useCallback((type: string, detail?: unknown) => {
     setEvents((prev) => appendEvent(prev, type, detail));
@@ -63,6 +85,8 @@ export function ShellApp({
         ) : null}
       </header>
 
+      <ShellChrome runtime={runtime} onEvent={pushEvent} />
+
       <SessionPanel
         session={session}
         busy={busy}
@@ -87,6 +111,7 @@ export function ShellApp({
           title="React + TanStack Query (fictional orders)"
           mounted={reactMounted}
           registry={registry}
+          runtime={runtime}
           loadMount={loadReactMount}
           capabilities={capabilities}
           onError={setError}
@@ -96,6 +121,7 @@ export function ShellApp({
           title="Vue + Apollo (fictional summary)"
           mounted={vueMounted}
           registry={registry}
+          runtime={runtime}
           loadMount={loadVueMount}
           capabilities={capabilities}
           onError={setError}

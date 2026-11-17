@@ -63,4 +63,40 @@ export class ShellPage {
   eventLog() {
     return this.page.getByTestId("event-log");
   }
+
+  title() {
+    return this.page.getByTestId("shell-title");
+  }
+
+  breadcrumbs() {
+    return this.page.getByTestId("shell-breadcrumbs");
+  }
+
+  action(id: string) {
+    return this.page.getByTestId(`shell-action-${id}`);
+  }
+
+  async navTo(id: "orders" | "summary") {
+    await this.page.getByTestId(`shell-nav-${id}`).click();
+  }
+
+  async setLanguage(language: "en" | "th") {
+    await this.page.getByTestId("language-select").selectOption(language);
+  }
+
+  languageSelect() {
+    return this.page.getByTestId("language-select");
+  }
+
+  slot(id: "header" | "sidebar") {
+    return this.page.getByTestId(`slot-${id}`);
+  }
+
+  path() {
+    return this.page.getByTestId("shell-path");
+  }
+
+  shellUser() {
+    return this.page.getByTestId("shell-user");
+  }
 }
