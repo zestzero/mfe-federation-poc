@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "rsbuild dev",
     "build": "rsbuild build",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check:css": "node ../../packages/design-system/scripts/check-built-css.mjs dist --remote .slashed-zero"
   },
   "dependencies": {
     "@apollo/client": "^4.0.0",
@@ -15,7 +16,11 @@
     "@rsbuild/core": "^2.0.0",
     "graphql": "^16.11.0",
     "rxjs": "^7.8.2",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "@poc/design-system": "workspace:*",
+    "@tailwindcss/postcss": "4.3.5",
+    "tailwindcss": "4.3.5",
+    "@poc/design-system-vue": "workspace:*"
   },
   "devDependencies": {
     "@rsbuild/plugin-vue": "^2.0.0",

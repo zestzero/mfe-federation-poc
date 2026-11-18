@@ -1,0 +1,13 @@
+/*
+ * Remote entry: layer order + Tailwind theme defaults + utilities + our variable mapping.
+ * No preflight (would restyle the host page) and no tokens (values come from the shell).
+ * tailwindcss/theme.css is imported so spacing/type utilities resolve; Tailwind emits only the
+ * variables used utilities need, with the same values in every app, so they cannot clash.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "./theme.css";
+
+@source "./**/*.{ts,tsx}";
+@source not "./**/*.test.{ts,tsx}";

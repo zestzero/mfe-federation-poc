@@ -1,3 +1,4 @@
+import "./styles.css";
 import { useMemo } from "react";
 import { createSessionCoordinator } from "@poc/session-coordinator";
 import { ShellApp, createMockAuthBridge } from "@poc/shell-ui";

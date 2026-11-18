@@ -1,0 +1,4 @@
+@import "@poc/design-system/shell.css";
+
+/* Tailwind v4 @source is relative to this file. shell-ui is shared by all shells. */
+@source "../../../packages/shell-ui/src";

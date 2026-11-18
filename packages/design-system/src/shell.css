@@ -1,0 +1,26 @@
+/*
+ * Shell entry: layer order + Tailwind theme defaults + preflight + our mapping + token values.
+ * - tailwindcss/theme.css: Tailwind default theme (spacing, type scale, ...). Tailwind only emits
+ *   the variables a used utility needs, so this does not add unused variables.
+ * - preflight is shell-only so remotes cannot restyle the host page.
+ * - utilities.css registers the `@tailwind utilities` placeholder.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "./theme.css";
+@import "./tokens.css";
+
+@source "./**/*.{ts,tsx}";
+@source not "./**/*.test.{ts,tsx}";
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}

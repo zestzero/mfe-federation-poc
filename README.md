@@ -12,6 +12,9 @@ Framework-agnostic session coordination across Module Federation remotes.
 4. Account changes / logout do not show obsolete-context data.
 5. TanStack Query and Apollo stay remote-owned.
 6. Unmount/remount does not leak subscriptions.
+7. A shell-owned `ShellApi` (navigation, language, user, layout, slots) is shared with remotes and fails closed with the session.
+
+Packages: `@poc/platform-contracts` (types), `@poc/session-coordinator` and `@poc/shell-state` (shell-internal; remotes must not import them), `@poc/shell-ui` (shell chrome, `RemoteHost`), `@poc/design-system` (Tailwind v4 theme, tokens, React components) and `@poc/design-system-vue` (Vue ports). The shell owns token values; remotes build their own CSS from the shared mapping. See [Design system](docs/design-system.md).
 
 Three DI shells:
 
@@ -41,6 +44,8 @@ pnpm typecheck
 pnpm test:unit
 pnpm build
 SHELL_A_URL=http://localhost:8090 pnpm test:e2e
+pnpm --filter <app> check:css              # after pnpm build: shell-injected, shell-federated, shell-zustand, remote-react, remote-vue
+pnpm --filter @poc/shell-ui check:styles   # no inline styles in shell-ui
 ```
 
 ## Simulated pieces
@@ -62,14 +67,41 @@ SHELL_A_URL=http://localhost:8090 pnpm test:e2e
 8. Delayed work during transition → completes under old revision policy; no auto-retry.
 9. Fail-next on `/api/session/account` → error shown; safe recoverable state.
 
-## Test results (executed 2026-11-15)
+Shell API scenarios (Playwright shell A, scenarios 10-19):
+
+10. Language set in the shell reaches both remotes without a session revision change.
+11. Language set by a remote reaches the shell and the other remote.
+12. Remote `navigate` updates the shell path; remote layout (title, breadcrumbs, actions) renders in the shell.
+13. Shell nav drives the remote view and the active remote's layout.
+14. Remote content renders in the `header` and `sidebar` slots.
+15. During an account switch slots hold no old-account text and `path` is truncated to its route root.
+16. Forced cleanup failure fails closed: slot content is removed.
+17. Unmounting a remote removes its layout and slots.
+18. A 60-character order id (deep link and in-session) still yields a valid layout; the remote mounts and registers.
+19. Browser Back after an account switch does not restore the previous account's order id.
+
+Design system scenarios (Playwright shell A, `a-design.spec.ts`; 21 is in `a-shell.spec.ts`):
+
+20. Each remote's own CSS (shipped with `./mount`) reaches the page when the shell mounts it (per-remote discriminator classes).
+21. A cold cross-document deep link keeps its order id.
+22. The shell theme toggle switches `<html>` to dark.
+23. Shell chrome keeps native controls.
+24. Force-cleanup-fail is still a checkbox and shell panels follow the theme.
+25. The React remote uses design-system tokens (same radius and font size as the shell button).
+26. The Vue remote follows the shell theme and tokens; its language picker stays a controlled native select.
+27. Theme survives an account switch (header and sidebar slots repaint with dark tokens).
+28. Theme survives forced cleanup failure and remount.
+29. Tokens agree across shell and remotes (radius, font family).
+
+## Test results (executed 2026-11-17)
 
 | Suite | Result | Notes |
 | --- | --- | --- |
-| Unit (`platform-contracts`, `session-coordinator`, `shared-session-store`) | **pass** | vitest |
-| Playwright shell A (scenarios 1–9) | **9 passed** | `SHELL_A_URL=http://localhost:8090` |
-| Playwright B/C smoke | **2 skipped** | requires `SHELL_B_URL` / `SHELL_C_URL` |
-| Typecheck (shells, remotes, shell-ui) | **pass** | MF config files excluded from tsc where SDK types are non-portable |
+| Unit (`platform-contracts`, `design-system`, `session-coordinator`, `design-system-vue`, `shell-state`, `shell-ui`, `shared-session-store`) | **202 passed** | vitest and node:test (17 + 38 + 12 + 66 + 56 + 12 + 1) |
+| Playwright shell A (scenarios 1-29, incl. design system 20-29) | **29 passed** | `SHELL_A_URL=http://localhost:8090` |
+| Playwright B/C smoke | **2 passed** | `SHELL_B_URL=http://localhost:8091`, `SHELL_C_URL=http://localhost:8092` (31 total, 0 skipped) |
+| Typecheck (shells, remotes, shell-ui, design-system packages) | **pass** | MF config files excluded from tsc where SDK types are non-portable |
+| Build, `check:css` (3 shells, 2 remotes), `check:styles` | **pass** | `check:css` runs after `pnpm build` |
 
 ## Docs
 

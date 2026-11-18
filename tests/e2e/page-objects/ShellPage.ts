@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 export class ShellPage {
   constructor(readonly page: Page) {}
@@ -17,6 +17,13 @@ export class ShellPage {
 
   revision() {
     return this.page.getByTestId("session-revision");
+  }
+
+  /** Cold start finished: the session left `transitioning` and both remotes registered. */
+  async settled(status: "anonymous" | "authenticated" = "anonymous") {
+    await expect(this.status()).toHaveText(status);
+    await expect(this.remoteStatus("react")).toHaveText("mounted");
+    await expect(this.remoteStatus("vue")).toHaveText("mounted");
   }
 
   async login() {
@@ -62,5 +69,41 @@ export class ShellPage {
 
   eventLog() {
     return this.page.getByTestId("event-log");
+  }
+
+  title() {
+    return this.page.getByTestId("shell-title");
+  }
+
+  breadcrumbs() {
+    return this.page.getByTestId("shell-breadcrumbs");
+  }
+
+  action(id: string) {
+    return this.page.getByTestId(`shell-action-${id}`);
+  }
+
+  async navTo(id: "orders" | "summary") {
+    await this.page.getByTestId(`shell-nav-${id}`).click();
+  }
+
+  async setLanguage(language: "en" | "th") {
+    await this.page.getByTestId("language-select").selectOption(language);
+  }
+
+  languageSelect() {
+    return this.page.getByTestId("language-select");
+  }
+
+  slot(id: "header" | "sidebar") {
+    return this.page.getByTestId(`slot-${id}`);
+  }
+
+  path() {
+    return this.page.getByTestId("shell-path");
+  }
+
+  shellUser() {
+    return this.page.getByTestId("shell-user");
   }
 }

@@ -11,7 +11,8 @@
     "test:unit": "pnpm -r --filter '!@poc/e2e' --if-present test",
     "build": "pnpm -r --if-present build",
     "test:e2e": "pnpm --filter @poc/e2e test",
-    "ci": "pnpm typecheck && pnpm test:unit && pnpm build"
+    "check:css": "pnpm -r --if-present check:css",
+    "ci": "pnpm typecheck && pnpm test:unit && pnpm build && pnpm check:css"
   },
   "engines": {
     "node": ">=22.18.0"
