@@ -5,7 +5,9 @@
 - **Shell (per browser instance):** owns exactly one session coordinator, remote registry, transition orchestration, and the debug UI.
 - **Remotes:** own QueryClient / ApolloClient, domain caches, and local feature state.
 - **`@poc/platform-contracts`:** types + small validators only. No store instances.
+- **`@poc/remote-kit`:** remote-side helpers (session resolve, mount handle, Rsbuild/MF factories, framework session hooks). Remotes may import it. Shells must not.
 - **`@poc/session-coordinator`:** shell-internal. Remotes must not import it.
+- **`@poc/shell-host`:** shell-internal (same rule as the coordinator). Catalog, MF/Modern.js config factories, and coordinator bootstrap. Remotes must not import it.
 - **`@poc/shared-session-store`:** DI **C** demo only (anti-pattern).
 
 ## Session lifecycle rules
@@ -30,10 +32,13 @@ Read/subscribe alone is **not** proof that cleanup completed.
 ## Adding a remote without shell coupling
 
 1. Export `mount(element, capabilities): MountHandle` via Module Federation.
-2. Resolve session with `capabilities.session ?? capabilities.resolveSession?.()`.
-3. Implement `RemoteLifecycle`.
-4. Depend only on `@poc/platform-contracts`.
-5. Register the remote in the shell MF config and mount it through `@poc/shell-ui` `RemoteHost`.
+2. Resolve session with `@poc/remote-kit` `resolveSession(capabilities, label)`.
+3. Return `createMountHandle(capabilities, hooks)` so dispose is idempotent and `forceCleanupFail` is handled once. Keep QueryClient / Apollo in the remote.
+4. Depend on `@poc/platform-contracts` and `@poc/remote-kit` only (plus UI/data libraries the remote owns).
+5. Use `createRemoteMfConfig` / `createRemoteRsbuildConfig` from `@poc/remote-kit/mf` and `@poc/remote-kit/rsbuild`. Subscribe to session with `@poc/remote-kit/react` or `@poc/remote-kit/vue`.
+6. Add a catalog entry in `@poc/shell-host` (`id`, `mfName`, `manifestUrl`, `title`, `route`, optional `nav`).
+7. In each consuming shell: pass that spec to `createShellMfConfig({ remotes })` and `bindMount(spec, () => import("<mfName>/mount"))` on `ShellApp` `remotes`. The `import()` must stay in the shell app so Module Federation rewrites it.
+8. Mount through `@poc/shell-ui` `RemoteHost` (rendered from the `remotes` list). Do not add a `RemoteSlotId` union member or chrome nav by hand — nav and toggles come from the catalog.
 
 Do **not** import shell internals, expose raw Zustand stores/`setState`, tokens, or query clients, or log credentials.
 

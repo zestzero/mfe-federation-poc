@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { MountHandle, RemoteMount, SessionApi } from "@poc/platform-contracts";
 import type { RemoteRegistry } from "@poc/session-coordinator";
-import type { RemoteLoader, RemoteSlotId } from "./types";
+import type { RemoteLoader } from "./types";
 
 type Props = {
-  id: RemoteSlotId;
+  id: string;
   title: string;
   mounted: boolean;
   registry: RemoteRegistry;

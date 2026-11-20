@@ -1,13 +1,8 @@
 import { createApp, h, shallowRef } from "vue";
-import type { MountCapabilities, MountHandle, RemoteBlockReason, RemoteMount, SessionApi } from "@poc/platform-contracts";
+import type { RemoteBlockReason, RemoteMount } from "@poc/platform-contracts";
+import { createMountHandle, resolveSession } from "@poc/remote-kit";
 import { createApolloClient } from "./apollo.js";
 import App from "./App.vue";
-
-function resolveSession(capabilities: MountCapabilities): SessionApi {
-  const session = capabilities.session ?? capabilities.resolveSession?.();
-  if (!session) throw new Error("Vue remote requires a session capability or resolver");
-  return session;
-}
 
 function stopClient(client: { stop?: () => void }): void {
   // Apollo stop() can leave observers hanging; never block transitions on it.
@@ -18,8 +13,8 @@ function stopClient(client: { stop?: () => void }): void {
   }
 }
 
-export const mount: RemoteMount = (element, capabilities): MountHandle => {
-  const session = resolveSession(capabilities);
+export const mount: RemoteMount = (element, capabilities) => {
+  const session = resolveSession(capabilities, "Vue remote");
   const snapshot = () => session.getSnapshot();
   const makeClient = () =>
     createApolloClient(() => {
@@ -32,7 +27,6 @@ export const mount: RemoteMount = (element, capabilities): MountHandle => {
   const client = shallowRef(makeClient());
   const blocked = shallowRef<RemoteBlockReason | null>(null);
   const draftNote = shallowRef("");
-  let disposed = false;
   const app = createApp({
     setup: () => () =>
       h(App, {
@@ -47,36 +41,29 @@ export const mount: RemoteMount = (element, capabilities): MountHandle => {
   });
   app.mount(element);
 
-  const lifecycle = {
-    async prepareTransition(ctx: { signal: AbortSignal }): Promise<void> {
-      ctx.signal.throwIfAborted();
+  return createMountHandle(capabilities, {
+    async prepareTransition() {
       stopClient(client.value);
     },
-    async resetIdentityState(ctx: { signal: AbortSignal }): Promise<void> {
-      ctx.signal.throwIfAborted();
-      if (capabilities.forceCleanupFail) throw new Error("forced cleanup failure");
+    async resetIdentityState() {
       const oldClient = client.value;
       draftNote.value = "";
       client.value = makeClient();
       stopClient(oldClient);
     },
-    async resume(ctx: { signal: AbortSignal }): Promise<void> {
-      ctx.signal.throwIfAborted();
+    async resume() {
       blocked.value = null;
     },
-    block(reason: RemoteBlockReason): void {
+    block(reason) {
       blocked.value = reason;
       draftNote.value = "";
       stopClient(client.value);
     },
-    dispose(): void {
-      if (disposed) return;
-      disposed = true;
+    dispose() {
       stopClient(client.value);
       app.unmount();
     },
-  };
-  return { lifecycle, unmount: () => lifecycle.dispose() };
+  });
 };
 
 export default mount;

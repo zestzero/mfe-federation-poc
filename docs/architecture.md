@@ -8,8 +8,10 @@ Related: [DI decision](decisions/001-session-di.md) · [limitations](limitations
 
 | Package / app | Role |
 | --- | --- |
-| `@poc/platform-contracts` | Types + small validators only. No store instances. Remotes depend on this package alone for session/lifecycle. |
+| `@poc/platform-contracts` | Types + small validators only. No store instances. Remotes depend on this package for session/lifecycle types. |
+| `@poc/remote-kit` | Remote-side host kit: `resolveSession`, `createMountHandle`, Rsbuild/MF factories, React/Vue session hooks. Shells must not import it. |
 | `@poc/session-coordinator` | Shell-internal Zustand vanilla coordinator + remote registry. Remotes must not import it. |
+| `@poc/shell-host` | Shell-internal host kit: remotes catalog, MF/Modern.js config factories, coordinator bootstrap. Remotes must not import it. |
 | `@poc/shared-session-store` | DI **C** only — package-level singleton anti-pattern. |
 | `@poc/shell-ui` | Shared debug UI: session panel, `RemoteHost`, scenario controls, event log. |
 | `@poc/test-support` | Fictional fixtures + `MockApiControls` for deterministic delays/failures. |
@@ -30,6 +32,7 @@ flowchart LR
 
   subgraph shellInternal["Shell-internal"]
     SC["@poc/session-coordinator"]
+    SH["@poc/shell-host"]
     SU["@poc/shell-ui"]
     SS["@poc/shared-session-store\n(DI C only)"]
   end
@@ -41,6 +44,7 @@ flowchart LR
   end
 
   subgraph remotes["Remotes"]
+    RK["@poc/remote-kit"]
     RR["remote-react"]
     RV["remote-vue"]
   end
@@ -49,18 +53,24 @@ flowchart LR
   TS["@poc/test-support"]
 
   SC --> PC
+  SH --> PC
+  SH --> SC
   SU --> PC
   SU --> SC
   SU --> TS
   SS --> SC
   A --> SU
-  A --> SC
+  A --> SH
   B --> SU
-  B --> SC
+  B --> SH
   C --> SU
+  C --> SH
   C --> SS
+  RK --> PC
   RR --> PC
+  RR --> RK
   RV --> PC
+  RV --> RK
   A -.->|MF mount| RR
   A -.->|MF mount| RV
   B -.->|MF mount| RR
@@ -72,7 +82,7 @@ flowchart LR
   RV -->|GraphQL| API
 ```
 
-Remotes must not import `@poc/session-coordinator` or shell apps. Their only platform dependency is `@poc/platform-contracts`.
+Remotes must not import `@poc/session-coordinator`, `@poc/shell-host`, or shell apps. Their platform dependencies are `@poc/platform-contracts` and `@poc/remote-kit`. Shells must not import `@poc/remote-kit`.
 
 ## Ownership diagram
 
@@ -119,7 +129,7 @@ ASCII sketch (same boundaries):
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │ Shell instance (Modern.js CSR)                                       │
-│  SessionCoordinator · RemoteRegistry · SessionApi · shell-ui         │
+│  shell-host · coordinator · registry · SessionApi · shell-ui         │
 │   ┌─────────────────────────┐   ┌─────────────────────────┐          │
 │   │ remote-react            │   │ remote-vue              │          │
 │   │ QueryClient (owned)     │   │ ApolloClient (owned)    │          │
@@ -399,7 +409,7 @@ type AuthBridge = {
 };
 ```
 
-Shell A/B use `createMockAuthBridge()` → `POST /api/session/{login,logout,account}`.
+Shell A/B use `@poc/shell-host` `createCoordinatorHost()` / `createMockAuthBridge()` → `POST /api/session/{login,logout,account}`.
 
 Fictional identities:
 
@@ -494,12 +504,12 @@ sequenceDiagram
 
 ## Shell UI composition
 
-Each shell renders `@poc/shell-ui` `ShellApp` with:
+Each shell renders `@poc/shell-ui` `ShellApp` with a `remotes` list from `@poc/shell-host` (`bindMount` plus a host-local `import("<mfName>/mount")`):
 
 - DI mode label + optional banner (required for C)
 - Session status, fictional user/account, context revision, contract version
 - Login / logout / account switch
-- Per-remote mount/unmount toggles
+- Per-remote mount/unmount toggles derived from the list
 - Scenario controls (delay, fail-next, force cleanup failure)
 - Bounded event/debug log (no credentials)
 
@@ -510,13 +520,11 @@ flowchart TB
   SA["ShellApp"]
   SA --> SP["SessionPanel"]
   SA --> MC["Mount toggles"]
-  SA --> RH1["RemoteHost react"]
-  SA --> RH2["RemoteHost vue"]
+  SA --> RH1["RemoteHost per remotes list"]
   SA --> SC["ScenarioControls"]
   SA --> EL["EventLog"]
   SP --> API["SessionApi"]
   RH1 --> API
-  RH2 --> API
   SC --> CTRL["mock-api /__controls"]
 ```
 

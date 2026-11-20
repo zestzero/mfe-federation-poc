@@ -1,1 +1,12 @@
-{"extends":"../../tsconfig.base.json","compilerOptions":{"jsx":"react-jsx","lib":["ES2022","DOM","DOM.Iterable"],"noEmit":true,"baseUrl":".","paths":{"*":["./@mf-types/*"]}},"include":["src"],"exclude":["node_modules","dist"]}
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": { "*": ["./@mf-types/*"] }
+  },
+  "include": ["src", "../../packages/shell-host/src/remote-modules.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,6 +1,6 @@
 import React, { type Dispatch, type SetStateAction } from "react";
 import type { RemoteBlockReason, SessionApi } from "@poc/platform-contracts";
-import { useSessionSnapshot } from "./sessionAdapter.js";
+import { useSessionSnapshot } from "@poc/remote-kit/react";
 import { useOrders } from "./query.js";
 
 export type LocalFeatureState = { draftNote: string };

@@ -10,9 +10,17 @@ export type ShellEvent = {
   detail?: unknown;
 };
 
-export type RemoteSlotId = "react" | "vue";
+export type RemoteSlotId = string;
 
 export type RemoteLoader = () => Promise<{ default?: RemoteMount; mount?: RemoteMount }>;
+
+export type RemoteDescriptor = {
+  id: string;
+  title: string;
+  route: string;
+  load: RemoteLoader;
+  nav?: { id: string; label: string };
+};
 
 export type ShellUiProps = {
   diMode: DiMode;
@@ -30,8 +38,7 @@ export type ShellUiProps = {
     forceCleanupFail?: boolean;
     onEvent?: (event: { type: string; detail?: unknown }) => void;
   };
-  loadReactMount: RemoteLoader;
-  loadVueMount: RemoteLoader;
+  remotes: RemoteDescriptor[];
 };
 
 export type MountedRemote = {

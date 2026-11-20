@@ -1,13 +1,22 @@
 import { useMemo } from "react";
-import { createSessionCoordinator } from "@poc/session-coordinator";
-import { ShellApp, createMockAuthBridge } from "@poc/shell-ui";
+import {
+  REACT_REMOTE,
+  VUE_REMOTE,
+  bindMount,
+  createCoordinatorHost,
+  resolverCapabilities,
+} from "@poc/shell-host";
+import { ShellApp } from "@poc/shell-ui";
 import { getSessionApi, setHostSessionApi } from "./sessionApi";
+
+const remotes = [
+  bindMount(REACT_REMOTE, () => import("reactRemote/mount")),
+  bindMount(VUE_REMOTE, () => import("vueRemote/mount")),
+];
 
 export default function App() {
   const { api, registry } = useMemo(() => {
-    const coordinator = createSessionCoordinator({
-      auth: createMockAuthBridge("user_ava"),
-    });
+    const coordinator = createCoordinatorHost();
     setHostSessionApi(coordinator.api);
     return coordinator;
   }, []);
@@ -19,13 +28,8 @@ export default function App() {
       banner="DI B: remotes receive resolveSession={() => getSessionApi()}. The host also exposes ./session via Module Federation for comparison."
       session={api}
       registry={registry}
-      resolveRemoteCapabilities={({ forceCleanupFail, onEvent }) => ({
-        resolveSession: () => getSessionApi(),
-        forceCleanupFail,
-        onEvent,
-      })}
-      loadReactMount={() => import("reactRemote/mount")}
-      loadVueMount={() => import("vueRemote/mount")}
+      remotes={remotes}
+      resolveRemoteCapabilities={resolverCapabilities(() => getSessionApi())}
     />
   );
 }

@@ -12,14 +12,12 @@ export function ShellApp({
   session,
   registry,
   resolveRemoteCapabilities,
-  loadReactMount,
-  loadVueMount,
+  remotes,
 }: ShellUiProps) {
   const [events, setEvents] = useState<ShellEvent[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [reactMounted, setReactMounted] = useState(true);
-  const [vueMounted, setVueMounted] = useState(true);
+  const [mounted, setMounted] = useState<Record<string, boolean>>({});
   const [forceCleanupFail, setForceCleanupFail] = useState(false);
 
   const pushEvent = useCallback((type: string, detail?: unknown) => {
@@ -34,6 +32,8 @@ export function ShellApp({
       }),
     [forceCleanupFail, pushEvent, resolveRemoteCapabilities],
   );
+
+  const isMounted = (id: string) => mounted[id] ?? true;
 
   const runCommand = async (label: string, action: () => Promise<void>) => {
     setBusy(true);
@@ -73,33 +73,33 @@ export function ShellApp({
       />
 
       <section aria-label="Remote mount controls" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button type="button" data-testid="toggle-react" onClick={() => setReactMounted((v) => !v)}>
-          {reactMounted ? "Unmount" : "Mount"} React remote
-        </button>
-        <button type="button" data-testid="toggle-vue" onClick={() => setVueMounted((v) => !v)}>
-          {vueMounted ? "Unmount" : "Mount"} Vue remote
-        </button>
+        {remotes.map((remote) => (
+          <button
+            key={remote.id}
+            type="button"
+            data-testid={`toggle-${remote.id}`}
+            onClick={() =>
+              setMounted((current) => ({ ...current, [remote.id]: !(current[remote.id] ?? true) }))
+            }
+          >
+            {isMounted(remote.id) ? "Unmount" : "Mount"} {remote.title}
+          </button>
+        ))}
       </section>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <RemoteHost
-          id="react"
-          title="React + TanStack Query (fictional orders)"
-          mounted={reactMounted}
-          registry={registry}
-          loadMount={loadReactMount}
-          capabilities={capabilities}
-          onError={setError}
-        />
-        <RemoteHost
-          id="vue"
-          title="Vue + Apollo (fictional summary)"
-          mounted={vueMounted}
-          registry={registry}
-          loadMount={loadVueMount}
-          capabilities={capabilities}
-          onError={setError}
-        />
+        {remotes.map((remote) => (
+          <RemoteHost
+            key={remote.id}
+            id={remote.id}
+            title={remote.title}
+            mounted={isMounted(remote.id)}
+            registry={registry}
+            loadMount={remote.load}
+            capabilities={capabilities}
+            onError={setError}
+          />
+        ))}
       </div>
 
       <ScenarioControls

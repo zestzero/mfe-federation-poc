@@ -1,10 +1,7 @@
-import type { ModuleFederationOptions } from "@module-federation/rsbuild-plugin";
+import { VUE_REMOTE_SHARED, createRemoteMfConfig } from "@poc/remote-kit/mf";
 
-const config: ModuleFederationOptions = {
+export default createRemoteMfConfig({
   name: "vueRemote",
-  filename: "remoteEntry.js",
-  exposes: { "./mount": "./src/mount.ts" },
-  shared: { vue: { singleton: true, requiredVersion: "^3.5.0" } },
-};
-
-export default config;
+  expose: "./src/mount.ts",
+  shared: VUE_REMOTE_SHARED,
+});

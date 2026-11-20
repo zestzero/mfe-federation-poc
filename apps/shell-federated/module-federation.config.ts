@@ -1,18 +1,9 @@
-import { createModuleFederationConfig } from "@module-federation/modern-js-v3";
+import { STANDARD_SHELL_REMOTES, createShellMfConfig } from "@poc/shell-host/mf";
 
-const config = createModuleFederationConfig({
+export default createShellMfConfig({
   name: "shell_federated",
+  remotes: STANDARD_SHELL_REMOTES,
   exposes: {
     "./session": "./src/sessionApi.ts",
   },
-  remotes: {
-    reactRemote: "reactRemote@http://localhost:5001/mf-manifest.json",
-    vueRemote: "vueRemote@http://localhost:5002/mf-manifest.json",
-  },
-  shared: {
-    react: { singleton: true, requiredVersion: "^19.0.0", eager: true },
-    "react-dom": { singleton: true, requiredVersion: "^19.0.0", eager: true },
-  },
 });
-
-export default config;

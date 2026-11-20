@@ -3,7 +3,7 @@ import { computed, onScopeDispose, ref, watch } from "vue";
 import type { ApolloClient } from "@apollo/client";
 import type { RemoteBlockReason, SessionApi } from "@poc/platform-contracts";
 import { ACCOUNT_SUMMARY_QUERY } from "./apollo.js";
-import { useSessionSnapshot } from "./sessionAdapter.js";
+import { useSessionSnapshot } from "@poc/remote-kit/vue";
 
 const props = defineProps<{
   session: SessionApi;

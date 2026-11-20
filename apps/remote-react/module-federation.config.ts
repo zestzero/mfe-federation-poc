@@ -1,23 +1,7 @@
-import type { ModuleFederationOptions } from "@module-federation/rsbuild-plugin";
+import { REACT_REMOTE_SHARED, createRemoteMfConfig } from "@poc/remote-kit/mf";
 
-const config: ModuleFederationOptions = {
+export default createRemoteMfConfig({
   name: "reactRemote",
-  filename: "remoteEntry.js",
-  exposes: { "./mount": "./src/mount.tsx" },
-  shared: {
-    react: {
-      singleton: true,
-      requiredVersion: "^19.0.0",
-      eager: false,
-      import: "react",
-    },
-    "react-dom": {
-      singleton: true,
-      requiredVersion: "^19.0.0",
-      eager: false,
-      import: "react-dom",
-    },
-  },
-};
-
-export default config;
+  expose: "./src/mount.tsx",
+  shared: REACT_REMOTE_SHARED,
+});

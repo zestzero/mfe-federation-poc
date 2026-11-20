@@ -1,15 +1,20 @@
 import { useMemo } from "react";
-import { createSessionCoordinator } from "@poc/session-coordinator";
-import { ShellApp, createMockAuthBridge } from "@poc/shell-ui";
+import {
+  REACT_REMOTE,
+  VUE_REMOTE,
+  bindMount,
+  createCoordinatorHost,
+  injectedCapabilities,
+} from "@poc/shell-host";
+import { ShellApp } from "@poc/shell-ui";
+
+const remotes = [
+  bindMount(REACT_REMOTE, () => import("reactRemote/mount")),
+  bindMount(VUE_REMOTE, () => import("vueRemote/mount")),
+];
 
 export default function App() {
-  const { api, registry } = useMemo(
-    () =>
-      createSessionCoordinator({
-        auth: createMockAuthBridge("user_ava"),
-      }),
-    [],
-  );
+  const { api, registry } = useMemo(() => createCoordinatorHost(), []);
 
   return (
     <ShellApp
@@ -17,13 +22,8 @@ export default function App() {
       title="Shell Injected — DI A (session capability via mount)"
       session={api}
       registry={registry}
-      resolveRemoteCapabilities={({ forceCleanupFail, onEvent }) => ({
-        session: api,
-        forceCleanupFail,
-        onEvent,
-      })}
-      loadReactMount={() => import("reactRemote/mount")}
-      loadVueMount={() => import("vueRemote/mount")}
+      remotes={remotes}
+      resolveRemoteCapabilities={injectedCapabilities(api)}
     />
   );
 }

@@ -1,0 +1,28 @@
+{
+  "name": "@poc/shell-host",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./mf": "./src/mf.ts",
+    "./modern": "./src/modern.ts",
+    "./remotes": {
+      "types": "./src/remote-modules.d.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modern-js/app-tools": "3.11.3",
+    "@module-federation/modern-js-v3": "2.9.3",
+    "@poc/platform-contracts": "workspace:*",
+    "@poc/session-coordinator": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  }
+}
