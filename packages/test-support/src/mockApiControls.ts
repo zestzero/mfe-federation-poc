@@ -14,8 +14,9 @@ export class MockApiControls {
     }
   }
 
-  delay(ms: number): Promise<void> {
-    return this.post("delay", { ms });
+  /** Delay mock-api responses; `routes` limits the delay to those exact paths (all routes when omitted). */
+  delay(ms: number, routes?: string[]): Promise<void> {
+    return this.post("delay", { ms, ...(routes === undefined ? {} : { routes }) });
   }
 
   failNext(route: string, status?: number): Promise<void> {

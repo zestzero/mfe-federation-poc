@@ -12,6 +12,9 @@ Framework-agnostic session coordination across Module Federation remotes.
 4. Account changes / logout do not show obsolete-context data.
 5. TanStack Query and Apollo stay remote-owned.
 6. Unmount/remount does not leak subscriptions.
+7. A shell-owned `ShellApi` (navigation, language, user, layout, slots) is shared with remotes and fails closed with the session.
+
+Packages: `@poc/platform-contracts` (types), `@poc/session-coordinator` and `@poc/shell-state` (shell-internal; remotes must not import them), `@poc/shell-ui` (shell chrome, `RemoteHost`).
 
 Three DI shells:
 
@@ -62,13 +65,26 @@ SHELL_A_URL=http://localhost:8090 pnpm test:e2e
 8. Delayed work during transition → completes under old revision policy; no auto-retry.
 9. Fail-next on `/api/session/account` → error shown; safe recoverable state.
 
-## Test results (executed 2026-11-15)
+Shell API scenarios (Playwright shell A, scenarios 10-19):
+
+10. Language set in the shell reaches both remotes without a session revision change.
+11. Language set by a remote reaches the shell and the other remote.
+12. Remote `navigate` updates the shell path; remote layout (title, breadcrumbs, actions) renders in the shell.
+13. Shell nav drives the remote view and the active remote's layout.
+14. Remote content renders in the `header` and `sidebar` slots.
+15. During an account switch slots hold no old-account text and `path` is truncated to its route root.
+16. Forced cleanup failure fails closed: slot content is removed.
+17. Unmounting a remote removes its layout and slots.
+18. A 60-character order id (deep link and in-session) still yields a valid layout; the remote mounts and registers.
+19. Browser Back after an account switch does not restore the previous account's order id.
+
+## Test results (executed 2026-11-16)
 
 | Suite | Result | Notes |
 | --- | --- | --- |
-| Unit (`platform-contracts`, `session-coordinator`, `shared-session-store`) | **pass** | vitest |
-| Playwright shell A (scenarios 1–9) | **9 passed** | `SHELL_A_URL=http://localhost:8090` |
-| Playwright B/C smoke | **2 skipped** | requires `SHELL_B_URL` / `SHELL_C_URL` |
+| Unit (`platform-contracts`, `session-coordinator`, `shell-state`, `shared-session-store`) | **86 passed** | vitest (17 + 12 + 56 + 1) |
+| Playwright shell A (scenarios 1–19) | **19 passed** | `SHELL_A_URL=http://localhost:8090` |
+| Playwright B/C smoke | **2 passed** | `SHELL_B_URL=http://localhost:8091`, `SHELL_C_URL=http://localhost:8092` (21 total, 0 skipped) |
 | Typecheck (shells, remotes, shell-ui) | **pass** | MF config files excluded from tsc where SDK types are non-portable |
 
 ## Docs
