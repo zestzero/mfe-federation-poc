@@ -155,9 +155,14 @@ test.describe("shell-injected A: shell state, layout and slots", () => {
   test("18 a long order id (deep link and in-session) still yields a valid layout", async ({ page }) => {
     const shell = new ShellPage(page);
     const longPath = `/orders/order_${"z".repeat(54)}`; // 60-character id
+    // Settle first: a hash edit while the cold-start session is still `transitioning` is truncated to
+    // the route root, which made this test flaky.
+    await shell.settled();
     // reload so the remote mounts with the long path already set (deep link)
     await page.goto(`/#${longPath}`);
+    await expect(shell.path()).toHaveText(longPath);
     await page.reload();
+    await shell.settled();
     await expect(shell.path()).toHaveText(longPath);
     // "mounted" is only shown after registry.register succeeded
     await expect(shell.remoteStatus("react")).toHaveText("mounted");
@@ -176,6 +181,16 @@ test.describe("shell-injected A: shell state, layout and slots", () => {
     // Vue still receives shell notifications (language) after React's listener ran
     await shell.setLanguage("th");
     await expect(page.getByTestId("vue-heading")).toHaveText(VUE_HEADING_TH);
+  });
+
+  test("21 a cold cross-document deep link keeps its order id", async ({ context }) => {
+    // Fresh tab from about:blank: the first document load already carries the id.
+    const page = await context.newPage();
+    const shell = new ShellPage(page);
+    await page.goto(`/#/orders/${NORTH_ORDER}`);
+    await shell.settled();
+    await expect(shell.path()).toHaveText(`/orders/${NORTH_ORDER}`);
+    await page.close();
   });
 
   test("19 browser Back does not restore a previous account's order id", async ({ page }) => {

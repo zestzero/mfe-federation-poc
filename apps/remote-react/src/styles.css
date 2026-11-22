@@ -1,0 +1,5 @@
+/* Remote CSS: utilities + variable mapping only (no token values, no preflight). Shipped with ./mount. */
+@import "@poc/design-system/remote.css";
+
+/* Tailwind v4 @source is relative to this file. remote.css already sources packages/design-system. */
+@source "./";

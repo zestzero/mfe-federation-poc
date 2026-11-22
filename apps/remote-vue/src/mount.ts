@@ -1,3 +1,5 @@
+// Remote CSS ships with the ./mount expose, so the shell loads it when it loads mount.
+import "./styles.css";
 import { createApp, h, shallowRef } from "vue";
 import type { MountCapabilities, MountHandle, RemoteBlockReason, RemoteMount, SessionApi } from "@poc/platform-contracts";
 import { createApolloClient } from "./apollo.js";

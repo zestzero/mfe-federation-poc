@@ -1,3 +1,4 @@
+import "./styles.css";
 import { useMemo } from "react";
 import { asSessionApi, getSharedSessionStore } from "@poc/shared-session-store";
 import { ShellApp } from "@poc/shell-ui";

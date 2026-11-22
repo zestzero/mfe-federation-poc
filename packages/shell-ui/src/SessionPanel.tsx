@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { SessionApi } from "@poc/platform-contracts";
+import { Alert, Button, Card, CardContent, CardHeader, DefinitionList } from "@poc/design-system";
 import { FICTIONAL_ACCOUNTS, FICTIONAL_USERS } from "@poc/test-support";
 
 type Props = {
@@ -34,49 +35,55 @@ export function SessionPanel({
       : snapshot.accountId ?? "none";
 
   return (
-    <section aria-label="Session controls" style={{ border: "1px solid #cbd5e1", padding: 12, borderRadius: 8 }}>
-      <h2>Session (fictional)</h2>
-      <dl style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "4px 12px", margin: 0 }}>
-        <dt>Status</dt>
-        <dd data-testid="session-status">{snapshot.status}</dd>
-        <dt>User</dt>
-        <dd data-testid="session-user">{userLabel}</dd>
-        <dt>Account</dt>
-        <dd data-testid="session-account">{accountLabel}</dd>
-        <dt>Context revision</dt>
-        <dd data-testid="session-revision">{snapshot.contextRevision}</dd>
-        <dt>Contract version</dt>
-        <dd>{session.contractVersion}</dd>
-      </dl>
-      {error ? (
-        <p role="alert" data-testid="session-error">
-          {error}
-        </p>
-      ) : null}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-        <button type="button" data-testid="login" disabled={busy} onClick={onLogin}>
-          Login (Ava / North)
-        </button>
-        <button type="button" data-testid="logout" disabled={busy} onClick={onLogout}>
-          Logout
-        </button>
-        <button
-          type="button"
-          data-testid="switch-north"
-          disabled={busy}
-          onClick={() => onSwitchAccount("acct_north")}
-        >
-          Switch to North
-        </button>
-        <button
-          type="button"
-          data-testid="switch-south"
-          disabled={busy}
-          onClick={() => onSwitchAccount("acct_south")}
-        >
-          Switch to South
-        </button>
-      </div>
-    </section>
+    <Card aria-label="Session controls" role="region" data-testid="session-panel">
+      <CardHeader>
+        <h2 className="m-0 text-base font-semibold">Session (fictional)</h2>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <DefinitionList>
+          <dt>Status</dt>
+          <dd data-testid="session-status">{snapshot.status}</dd>
+          <dt>User</dt>
+          <dd data-testid="session-user">{userLabel}</dd>
+          <dt>Account</dt>
+          <dd data-testid="session-account">{accountLabel}</dd>
+          <dt>Context revision</dt>
+          <dd data-testid="session-revision">{snapshot.contextRevision}</dd>
+          <dt>Contract version</dt>
+          <dd>{session.contractVersion}</dd>
+        </DefinitionList>
+        {error ? (
+          <Alert variant="destructive" role="alert" data-testid="session-error">
+            {error}
+          </Alert>
+        ) : null}
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" data-testid="login" disabled={busy} onClick={onLogin}>
+            Login (Ava / North)
+          </Button>
+          <Button variant="outline" size="sm" data-testid="logout" disabled={busy} onClick={onLogout}>
+            Logout
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="switch-north"
+            disabled={busy}
+            onClick={() => onSwitchAccount("acct_north")}
+          >
+            Switch to North
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="switch-south"
+            disabled={busy}
+            onClick={() => onSwitchAccount("acct_south")}
+          >
+            Switch to South
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

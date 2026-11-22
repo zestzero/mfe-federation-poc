@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 export class ShellPage {
   constructor(readonly page: Page) {}
@@ -17,6 +17,13 @@ export class ShellPage {
 
   revision() {
     return this.page.getByTestId("session-revision");
+  }
+
+  /** Cold start finished: the session left `transitioning` and both remotes registered. */
+  async settled(status: "anonymous" | "authenticated" = "anonymous") {
+    await expect(this.status()).toHaveText(status);
+    await expect(this.remoteStatus("react")).toHaveText("mounted");
+    await expect(this.remoteStatus("vue")).toHaveText("mounted");
   }
 
   async login() {

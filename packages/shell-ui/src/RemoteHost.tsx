@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Badge, Card, CardContent, CardHeader } from "@poc/design-system";
 import type { MountHandle, RemoteMount, SessionApi } from "@poc/platform-contracts";
 import type { RemoteRegistry } from "@poc/session-coordinator";
 import type { ShellRuntime } from "@poc/shell-state";
@@ -95,12 +96,17 @@ export function RemoteHost({
   }, [mounted, id, capabilities.forceCleanupFail, runtime, registry]);
 
   return (
-    <section aria-label={title} data-testid={`remote-host-${id}`} style={{ border: "1px solid #94a3b8", borderRadius: 8, padding: 12 }}>
-      <header style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-        <h3 style={{ margin: 0 }}>{title}</h3>
-        <span data-testid={`remote-status-${id}`}>{status}</span>
-      </header>
-      <div ref={hostRef} data-testid={`remote-root-${id}`} />
-    </section>
+    <Card aria-label={title} data-remote={id} data-testid={`remote-host-${id}`} role="region" className="min-w-0 border-t-4 border-t-primary">
+      <CardHeader className="flex-row items-center justify-between gap-2">
+        <h3 className="m-0 text-sm font-semibold">{title}</h3>
+        <Badge variant={status === "error" ? "destructive" : status === "mounted" ? "secondary" : "outline"} data-testid={`remote-status-${id}`}>
+          {status}
+        </Badge>
+      </CardHeader>
+      {/* no text colour or font here: the remote's root carries its own token classes */}
+      <CardContent>
+        <div ref={hostRef} data-testid={`remote-root-${id}`} />
+      </CardContent>
+    </Card>
   );
 }

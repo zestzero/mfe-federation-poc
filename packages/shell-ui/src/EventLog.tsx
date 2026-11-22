@@ -1,3 +1,4 @@
+import { Button, Card, CardContent, CardHeader } from "@poc/design-system";
 import type { ShellEvent } from "./types";
 
 const MAX_EVENTS = 40;
@@ -9,24 +10,33 @@ type Props = {
 
 export function EventLog({ events, onClear }: Props) {
   return (
-    <section aria-label="Event log" style={{ border: "1px solid #cbd5e1", padding: 12, borderRadius: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2>Event / debug log (bounded)</h2>
-        <button type="button" data-testid="clear-events" onClick={onClear}>
+    <Card aria-label="Event log" role="region" data-testid="event-log-panel">
+      <CardHeader className="flex-row items-center justify-between gap-2">
+        <h2 className="m-0 text-base font-semibold">Event / debug log (bounded)</h2>
+        <Button variant="outline" size="sm" data-testid="clear-events" onClick={onClear}>
           Clear
-        </button>
-      </div>
-      <ol data-testid="event-log" style={{ margin: 0, paddingLeft: 18, maxHeight: 220, overflow: "auto" }}>
-        {events.length === 0 ? <li>No events yet.</li> : null}
-        {events.map((event) => (
-          <li key={event.id}>
-            <code>{event.at}</code> · <strong>{event.type}</strong>
-            {event.detail !== undefined ? <> — {safeDetail(event.detail)}</> : null}
-          </li>
-        ))}
-      </ol>
-      <p style={{ color: "#64748b", fontSize: 12 }}>Keeps the newest {MAX_EVENTS} entries. Never logs credentials.</p>
-    </section>
+        </Button>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        <ol
+          data-testid="event-log"
+          tabIndex={0}
+          aria-label="Events"
+          className="m-0 max-h-56 list-none overflow-auto rounded-md border border-solid border-border bg-muted p-2 font-mono text-xs text-foreground"
+        >
+          {events.length === 0 ? <li className="text-muted-foreground">No events yet.</li> : null}
+          {events.map((event) => (
+            <li key={event.id} className="py-0.5 break-words">
+              <code className="text-muted-foreground">{event.at}</code> · <strong>{event.type}</strong>
+              {event.detail !== undefined ? <> — {safeDetail(event.detail)}</> : null}
+            </li>
+          ))}
+        </ol>
+        <p className="m-0 text-xs text-muted-foreground">
+          Keeps the newest {MAX_EVENTS} entries. Never logs credentials.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 

@@ -1,5 +1,7 @@
 import React, { type Dispatch, type SetStateAction } from "react";
 import type { RemoteBlockReason, SessionApi, ShellApi } from "@poc/platform-contracts";
+import { Alert, Badge, Button, Card, CardContent, cn } from "@poc/design-system";
+import { inputClass } from "@poc/design-system/variants";
 import { useSessionSnapshot } from "./sessionAdapter.js";
 import { orderIdFromPath, tryShell, useShellState } from "./shellAdapter.js";
 import { useOrders } from "./query.js";
@@ -25,8 +27,10 @@ export function App({ session, shell, blocked, localFeature, setLocalFeature }: 
 
   if (blocked) {
     return (
-      <main>
-        <p role="alert">Remote paused: {blocked.message}</p>
+      <main className="text-foreground tabular-nums">
+        <Alert variant="warning" role="alert">
+          Remote paused: {blocked.message}
+        </Alert>
       </main>
     );
   }
@@ -34,51 +38,82 @@ export function App({ session, shell, blocked, localFeature, setLocalFeature }: 
   const detail = detailId ? ordersQuery.data?.find((order) => order.id === detailId) : undefined;
 
   return (
-    <main>
-      <h1 data-testid="react-heading">{t(lang, "Fictional React Orders")}</h1>
-      {shell ? (
-        <small data-testid="react-shell-user">
-          {t(lang, "Shell user")}: {shellState?.user?.displayName ?? "—"}
-        </small>
+    <main className="flex flex-col gap-4 text-foreground tabular-nums">
+      <div className="flex flex-col gap-1">
+        <h1 data-testid="react-heading" className="m-0 text-lg font-semibold tracking-tight">
+          {t(lang, "Fictional React Orders")}
+        </h1>
+        {shell ? (
+          <small data-testid="react-shell-user" className="text-muted-foreground">
+            {t(lang, "Shell user")}: {shellState?.user?.displayName ?? "—"}
+          </small>
+        ) : null}
+      </div>
+      <div className="flex flex-col gap-0.5 text-sm text-muted-foreground">
+        <p className="m-0">Session status: {snapshot.status}</p>
+        <p className="m-0">Account: {snapshot.accountId ?? "none"} (fictional)</p>
+      </div>
+      {snapshot.status !== "authenticated" ? (
+        <p className="m-0 text-sm text-muted-foreground">{t(lang, "Sign in to view fictional orders.")}</p>
       ) : null}
-      <p>Session status: {snapshot.status}</p>
-      <p>Account: {snapshot.accountId ?? "none"} (fictional)</p>
-      {snapshot.status !== "authenticated" ? <p>{t(lang, "Sign in to view fictional orders.")}</p> : null}
-      {ordersQuery.isPending && ordersQuery.fetchStatus !== "idle" ? <p>Loading fictional orders…</p> : null}
-      {ordersQuery.isError ? <p role="alert">Could not load orders: {ordersQuery.error.message}</p> : null}
+      {ordersQuery.isPending && ordersQuery.fetchStatus !== "idle" ? (
+        <p className="m-0 text-sm text-muted-foreground">Loading fictional orders…</p>
+      ) : null}
+      {ordersQuery.isError ? (
+        <Alert variant="destructive" role="alert">
+          Could not load orders: {ordersQuery.error.message}
+        </Alert>
+      ) : null}
       {detailId && ordersQuery.data ? (
-        <section data-testid="react-order-detail">
+        <section data-testid="react-order-detail" className="flex flex-col items-start gap-3">
           {detail ? (
-            <p>
-              {detail.id}: {detail.description} — {detail.status}
-            </p>
+            <Card className="w-full py-4">
+              <CardContent className="flex items-center gap-2 text-sm">
+                <span>
+                  {detail.id}: {detail.description} —
+                </span>
+                <Badge variant="outline">{detail.status}</Badge>
+              </CardContent>
+            </Card>
           ) : (
-            <p>{t(lang, "Order not found")}</p>
+            <p className="m-0 text-sm text-muted-foreground">{t(lang, "Order not found")}</p>
           )}
-          <button type="button" onClick={() => navigate("/orders")}>
+          <Button variant="outline" size="sm" onClick={() => navigate("/orders")}>
             {t(lang, "Back to orders")}
-          </button>
+          </Button>
         </section>
       ) : ordersQuery.data ? (
-        <ul>
+        <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {ordersQuery.data.map((order) => (
             <li key={order.id}>
-              {order.description} — {order.status}
-              {shell ? (
-                <>
-                  {" "}
-                  <button type="button" data-testid={`react-order-open-${order.id}`} onClick={() => navigate(`/orders/${order.id}`)}>
-                    {t(lang, "Open")}
-                  </button>
-                </>
-              ) : null}
+              <Card className="py-3">
+                <CardContent className="flex items-center gap-2 text-sm">
+                  <span>{order.description} —</span>
+                  <Badge variant="secondary">{order.status}</Badge>
+                  {shell ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto"
+                      data-testid={`react-order-open-${order.id}`}
+                      onClick={() => navigate(`/orders/${order.id}`)}
+                    >
+                      {t(lang, "Open")}
+                    </Button>
+                  ) : null}
+                </CardContent>
+              </Card>
             </li>
           ))}
         </ul>
       ) : null}
-      <label>
+      <label className="flex flex-col gap-1.5 text-sm font-medium">
         Fictional draft note
-        <textarea value={localFeature.draftNote} onChange={(event) => setLocalFeature({ draftNote: event.target.value })} />
+        <textarea
+          className={cn(inputClass, "h-24 resize-y py-2")}
+          value={localFeature.draftNote}
+          onChange={(event) => setLocalFeature({ draftNote: event.target.value })}
+        />
       </label>
     </main>
   );
@@ -92,9 +127,9 @@ export function OpenOrdersBadge({ session, shell }: { session: SessionApi; shell
   if (snapshot.status !== "authenticated") return null;
   const count = ordersQuery.data?.filter((order) => order.status === "open").length;
   return (
-    <span data-testid="react-open-orders">
+    <Badge variant="secondary" data-testid="react-open-orders">
       {t(shellState?.language ?? "en", "Open orders")}: {count ?? "—"}
-    </span>
+    </Badge>
   );
 }
 

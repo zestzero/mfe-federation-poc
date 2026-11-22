@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, Button } from "@poc/design-system";
 import { createShellRuntime } from "@poc/shell-state";
 import { FICTIONAL_USERS } from "@poc/test-support";
 import { SessionPanel } from "./SessionPanel";
@@ -74,67 +75,74 @@ export function ShellApp({
   };
 
   return (
-    <main style={{ fontFamily: "system-ui, sans-serif", padding: 16, display: "grid", gap: 16 }}>
-      <header>
-        <p style={{ margin: 0, color: "#64748b" }}>DI mode {diMode} · fictional POC data only</p>
-        <h1 style={{ margin: "4px 0" }}>{title}</h1>
-        {banner ? (
-          <p role="note" data-testid="di-banner" style={{ background: "#fef3c7", padding: 8, borderRadius: 6 }}>
-            {banner}
-          </p>
-        ) : null}
-      </header>
-
-      <ShellChrome runtime={runtime} onEvent={pushEvent} />
-
-      <SessionPanel
-        session={session}
-        busy={busy}
-        error={error}
-        onLogin={() => void runCommand("login", () => session.requestLogin())}
-        onLogout={() => void runCommand("logout", () => session.requestLogout())}
-        onSwitchAccount={(accountId) => void runCommand(`account:${accountId}`, () => session.requestAccountChange(accountId))}
-      />
-
-      <section aria-label="Remote mount controls" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button type="button" data-testid="toggle-react" onClick={() => setReactMounted((v) => !v)}>
-          {reactMounted ? "Unmount" : "Mount"} React remote
-        </button>
-        <button type="button" data-testid="toggle-vue" onClick={() => setVueMounted((v) => !v)}>
-          {vueMounted ? "Unmount" : "Mount"} Vue remote
-        </button>
-      </section>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <RemoteHost
-          id="react"
-          title="React + TanStack Query (fictional orders)"
-          mounted={reactMounted}
-          registry={registry}
-          runtime={runtime}
-          loadMount={loadReactMount}
-          capabilities={capabilities}
-          onError={setError}
-        />
-        <RemoteHost
-          id="vue"
-          title="Vue + Apollo (fictional summary)"
-          mounted={vueMounted}
-          registry={registry}
-          runtime={runtime}
-          loadMount={loadVueMount}
-          capabilities={capabilities}
-          onError={setError}
-        />
-      </div>
-
-      <ScenarioControls
-        forceCleanupFail={forceCleanupFail}
-        onForceCleanupFailChange={setForceCleanupFail}
+    // `antialiased` is used only here: check-built-css.mjs (the shells' check:css) uses it as the probe
+    // that proves the shell build scans packages/shell-ui sources. Keep it or change the probe there.
+    <main className="antialiased min-h-screen bg-background">
+      <ShellChrome
+        runtime={runtime}
         onEvent={pushEvent}
-      />
+        brand={
+          <div>
+            <p className="m-0 text-xs text-muted-foreground">DI mode {diMode} · fictional POC data only</p>
+            <h1 className="m-0 text-xl font-semibold tracking-tight">{title}</h1>
+          </div>
+        }
+      >
+        {banner ? (
+          <Alert variant="warning" role="note" data-testid="di-banner">
+            {banner}
+          </Alert>
+        ) : null}
 
-      <EventLog events={events} onClear={() => setEvents([])} />
+        <SessionPanel
+          session={session}
+          busy={busy}
+          error={error}
+          onLogin={() => void runCommand("login", () => session.requestLogin())}
+          onLogout={() => void runCommand("logout", () => session.requestLogout())}
+          onSwitchAccount={(accountId) => void runCommand(`account:${accountId}`, () => session.requestAccountChange(accountId))}
+        />
+
+        <section aria-label="Remote mount controls" className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" data-testid="toggle-react" onClick={() => setReactMounted((v) => !v)}>
+            {reactMounted ? "Unmount" : "Mount"} React remote
+          </Button>
+          <Button variant="outline" size="sm" data-testid="toggle-vue" onClick={() => setVueMounted((v) => !v)}>
+            {vueMounted ? "Unmount" : "Mount"} Vue remote
+          </Button>
+        </section>
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          <RemoteHost
+            id="react"
+            title="React + TanStack Query (fictional orders)"
+            mounted={reactMounted}
+            registry={registry}
+            runtime={runtime}
+            loadMount={loadReactMount}
+            capabilities={capabilities}
+            onError={setError}
+          />
+          <RemoteHost
+            id="vue"
+            title="Vue + Apollo (fictional summary)"
+            mounted={vueMounted}
+            registry={registry}
+            runtime={runtime}
+            loadMount={loadVueMount}
+            capabilities={capabilities}
+            onError={setError}
+          />
+        </div>
+
+        <ScenarioControls
+          forceCleanupFail={forceCleanupFail}
+          onForceCleanupFailChange={setForceCleanupFail}
+          onEvent={pushEvent}
+        />
+
+        <EventLog events={events} onClear={() => setEvents([])} />
+      </ShellChrome>
     </main>
   );
 }

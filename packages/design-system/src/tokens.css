@@ -1,0 +1,112 @@
+/*
+ * Token VALUES. Imported by the shell only (via shell.css / standalone.css).
+ * Remotes never import this file: they read the shell's variables at runtime.
+ * shadcn "neutral" palette (oklch). `warning` is an extra amber token.
+ */
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.97 0.012 265);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.48 0.2 265);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.96 0.02 265);
+  --secondary-foreground: oklch(0.3 0.1 265);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.96 0.02 265);
+  --accent-foreground: oklch(0.3 0.1 265);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.279 0.077 45.635);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.65 0.15 265);
+  --shadow-color: oklch(0 0 0 / 10%);
+}
+
+.dark {
+  --background: oklch(0.16 0.025 265);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.72 0.15 265);
+  --primary-foreground: oklch(0.2 0.05 265);
+  --secondary: oklch(0.3 0.05 265);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.3 0.05 265);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.828 0.189 84.429);
+  --warning-foreground: oklch(0.279 0.077 45.635);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.55 0.15 265);
+  --shadow-color: oklch(0 0 0 / 40%);
+}
+
+/*
+ * Per-remote accent: the shell tags each remote's host card with data-remote, and the variables
+ * below inherit into the remote's DOM, so a remote's primary/secondary/accent/ring follow its slot
+ * without the remote declaring any value. Remotes never import this file.
+ */
+[data-remote="react"] {
+  --background: oklch(0.975 0.02 200);
+  --card: oklch(0.975 0.02 200);
+  --popover: oklch(0.975 0.02 200);
+  --primary: oklch(0.48 0.11 200);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.96 0.025 200);
+  --secondary-foreground: oklch(0.3 0.07 200);
+  --accent: oklch(0.96 0.025 200);
+  --accent-foreground: oklch(0.3 0.07 200);
+  --ring: oklch(0.65 0.11 200);
+}
+
+.dark [data-remote="react"] {
+  --background: oklch(0.21 0.03 200);
+  --card: oklch(0.21 0.03 200);
+  --popover: oklch(0.21 0.03 200);
+  --primary: oklch(0.75 0.11 200);
+  --primary-foreground: oklch(0.2 0.04 200);
+  --secondary: oklch(0.3 0.04 200);
+  --secondary-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.3 0.04 200);
+  --accent-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.55 0.11 200);
+}
+
+[data-remote="vue"] {
+  --background: oklch(0.975 0.02 150);
+  --card: oklch(0.975 0.02 150);
+  --popover: oklch(0.975 0.02 150);
+  --primary: oklch(0.48 0.14 150);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.96 0.025 150);
+  --secondary-foreground: oklch(0.3 0.07 150);
+  --accent: oklch(0.96 0.025 150);
+  --accent-foreground: oklch(0.3 0.07 150);
+  --ring: oklch(0.65 0.14 150);
+}
+
+.dark [data-remote="vue"] {
+  --background: oklch(0.21 0.03 150);
+  --card: oklch(0.21 0.03 150);
+  --popover: oklch(0.21 0.03 150);
+  --primary: oklch(0.75 0.14 150);
+  --primary-foreground: oklch(0.2 0.04 150);
+  --secondary: oklch(0.3 0.04 150);
+  --secondary-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.3 0.04 150);
+  --accent-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.55 0.14 150);
+}

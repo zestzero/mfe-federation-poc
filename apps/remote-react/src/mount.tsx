@@ -1,3 +1,5 @@
+// Remote CSS ships with the ./mount expose, so the shell loads it when it loads mount.
+import "./styles.css";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";

@@ -9,6 +9,7 @@
 - **`@poc/session-coordinator`:** shell-internal. Remotes must not import it.
 - **`@poc/shell-state`:** shell-internal (same rule as the coordinator). Remotes must not import it; they only see `ShellApi` from `@poc/platform-contracts`.
 - **`@poc/shared-session-store`:** DI **C** demo only (anti-pattern).
+- **Design system:** the shell owns token values (`tokens.css`) and preflight. Remotes own their Tailwind build and may import `@poc/design-system` / `@poc/design-system-vue` for UI only. See `docs/design-system.md`.
 
 ## Session lifecycle rules
 
@@ -40,9 +41,10 @@ Shell layout/slot facts:
 1. Export `mount(element, capabilities): MountHandle` via Module Federation.
 2. Resolve session with `capabilities.session ?? capabilities.resolveSession?.()`.
 3. Implement `RemoteLifecycle`.
-4. Depend only on `@poc/platform-contracts` (never `@poc/shell-state`).
+4. Depend on `@poc/platform-contracts`, and optionally the UI-only `@poc/design-system` / `@poc/design-system-vue` (never `@poc/shell-state` or `@poc/session-coordinator`).
 5. Optionally resolve `capabilities.shell` and use `navigate`, `setLanguage`, `setLayout`, `claimSlot` per the rules above.
 6. Register the remote in the shell MF config and mount it through `@poc/shell-ui` `RemoteHost`.
+7. Adopt the design system: `src/styles.css` importing `@poc/design-system/remote.css`, `tools.postcss` with `@tailwindcss/postcss`, `import "./styles.css"` from the exposed `mount` module, `check:css` script. Steps in `docs/design-system.md`.
 
 Shell API rules for remotes:
 
@@ -51,6 +53,14 @@ Shell API rules for remotes:
 - Re-send the layout in `resume()` and whenever path, language or session changes.
 - Build slot content from current state only: the shell calls `render(el)` again after each `resume`.
 - Catch only `FACADE_REVOKED` and `SLOT_TAKEN` from shell commands. Match by `error.name === "ShellCommandError"` and `error.code`, **not** `instanceof`: `@poc/platform-contracts` is not shared through Module Federation, so remotes hold a different class copy.
+
+Styling rules for remotes:
+
+- Use semantic tokens only (`bg-primary`, `text-muted-foreground`, ...). No colour values and no preflight in remote CSS; the shell owns both.
+- Components must be correct without preflight (remote CSS cannot reset the page).
+- Keep native controls native (`select`, checkbox) where e2e depends on them.
+- Vue components are controlled natives: props and events, no `v-model`. Their classes come from `@poc/design-system/variants`.
+- Do not import `@poc/design-system/tokens.css` or `shell.css` from `mount`; only the standalone entry may use `standalone.css`.
 
 Do **not** import shell internals, expose raw Zustand stores/`setState`, tokens, or query clients, or log credentials.
 
@@ -64,6 +74,8 @@ pnpm typecheck
 pnpm test:unit
 pnpm build
 pnpm test:e2e
+pnpm --filter <app> check:css            # after build; shells A/B/C, remote-react, remote-vue
+pnpm --filter @poc/shell-ui check:styles
 ```
 
 Ports: mock-api `4010`, remote-react `5001`, remote-vue `5002`, shells `8090/8091/8092`.

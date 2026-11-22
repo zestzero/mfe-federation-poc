@@ -1,10 +1,16 @@
-import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore, type ReactNode } from "react";
+import { Breadcrumb, BreadcrumbItem, Button, NativeSelect, NavLink } from "@poc/design-system";
 import type { Language, SlotId } from "@poc/platform-contracts";
 import type { ShellRuntime } from "@poc/shell-state";
+import { ThemeToggle } from "./ThemeToggle";
 
 type Props = {
   runtime: ShellRuntime;
   onEvent: (type: string, detail?: unknown) => void;
+  /** Left side of the top bar (app name, DI mode). */
+  brand: ReactNode;
+  /** Main column content, below the header slot. */
+  children: ReactNode;
 };
 
 const NAV = [
@@ -28,7 +34,7 @@ function useSlotRef(runtime: ShellRuntime, id: SlotId) {
   );
 }
 
-export function ShellChrome({ runtime, onEvent }: Props) {
+export function ShellChrome({ runtime, onEvent, brand, children }: Props) {
   const state = useSyncExternalStore(runtime.subscribe, runtime.getState);
   const view = useSyncExternalStore(runtime.subscribe, runtime.getView);
   const headerRef = useSlotRef(runtime, "header");
@@ -64,72 +70,95 @@ export function ShellChrome({ runtime, onEvent }: Props) {
   const layout = view.layout;
 
   return (
-    <section aria-label="Shell chrome" style={{ display: "grid", gap: 8 }}>
-      <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", borderBottom: "1px solid #cbd5e1", paddingBottom: 8 }}>
-        <h2 data-testid="shell-title" style={{ margin: 0, fontSize: 18 }}>
-          {layout?.title ?? ""}
-        </h2>
-        <nav aria-label="Breadcrumbs" data-testid="shell-breadcrumbs" style={{ display: "flex", gap: 4 }}>
-          {layout?.breadcrumbs?.map((crumb, i) =>
-            crumb.path === undefined ? (
-              <span key={i}>{crumb.label}</span>
-            ) : (
-              <button key={i} type="button" onClick={() => navigate(crumb.path!)}>
-                {crumb.label}
-              </button>
-            ),
-          )}
-        </nav>
-        <div style={{ display: "flex", gap: 4 }}>
-          {layout?.actions?.map((action) => (
-            <button
-              key={action.id}
-              type="button"
-              data-testid={`shell-action-${action.id}`}
-              disabled={action.disabled}
-              onClick={() => {
-                try {
-                  action.onSelect();
-                } catch (err) {
-                  onEvent("layout.action.error", { id: action.id, message: message(err) });
-                }
-              }}
-            >
-              {action.label}
-            </button>
-          ))}
+    <section aria-label="Shell chrome" className="flex min-h-screen flex-col">
+      <header className="border-b bg-card">
+        <div className="flex flex-wrap items-center gap-4 px-6 py-3">
+          {brand}
+          <div className="ml-auto flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              Language{" "}
+              <NativeSelect
+                data-testid="language-select"
+                value={state.language}
+                onChange={(e) => runtime.shellSetLanguage(e.target.value as Language)}
+              >
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+              </NativeSelect>
+            </label>
+            <span data-testid="shell-user" className="text-sm font-medium">
+              {state.user?.displayName ?? "Signed out"}
+            </span>
+            <ThemeToggle />
+          </div>
         </div>
-        <span style={{ marginLeft: "auto" }} />
-        <label>
-          Language{" "}
-          <select
-            data-testid="language-select"
-            value={state.language}
-            onChange={(e) => runtime.shellSetLanguage(e.target.value as Language)}
-          >
-            <option value="en">English</option>
-            <option value="th">ไทย</option>
-          </select>
-        </label>
-        <span data-testid="shell-user">{state.user?.displayName ?? "Signed out"}</span>
-        <code data-testid="shell-path">{state.path}</code>
-      </div>
-      <div data-testid="slot-header" ref={headerRef} />
-      <div style={{ display: "flex", gap: 12 }}>
-        <nav aria-label="Shell navigation" style={{ display: "grid", gap: 4, alignContent: "start" }}>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t px-6 py-2">
+          <h2 data-testid="shell-title" className="m-0 text-lg font-semibold">
+            {layout?.title ?? ""}
+          </h2>
+          <Breadcrumb aria-label="Breadcrumbs" data-testid="shell-breadcrumbs">
+            {layout?.breadcrumbs?.map((crumb, i) => (
+              <BreadcrumbItem key={i}>
+                {crumb.path === undefined ? (
+                  <span className="text-foreground">{crumb.label}</span>
+                ) : (
+                  <button
+                    type="button"
+                    className="cursor-pointer hover:text-foreground hover:underline"
+                    onClick={() => navigate(crumb.path!)}
+                  >
+                    {crumb.label}
+                  </button>
+                )}
+              </BreadcrumbItem>
+            ))}
+          </Breadcrumb>
+          <div className="flex flex-wrap gap-2">
+            {layout?.actions?.map((action) => (
+              <Button
+                key={action.id}
+                variant="outline"
+                size="sm"
+                data-testid={`shell-action-${action.id}`}
+                disabled={action.disabled}
+                onClick={() => {
+                  try {
+                    action.onSelect();
+                  } catch (err) {
+                    onEvent("layout.action.error", { id: action.id, message: message(err) });
+                  }
+                }}
+              >
+                {action.label}
+              </Button>
+            ))}
+          </div>
+          <code data-testid="shell-path" className="ml-auto rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+            {state.path}
+          </code>
+        </div>
+      </header>
+      <div className="grid flex-1 items-start gap-6 p-6 lg:grid-cols-[10rem_minmax(0,1fr)_16rem]">
+        <nav aria-label="Shell navigation" className="flex flex-col gap-1">
           {NAV.map((item) => (
-            <button
+            <NavLink
               key={item.id}
-              type="button"
               data-testid={`shell-nav-${item.id}`}
-              aria-current={view.activeRemoteId === item.remoteId ? "page" : undefined}
+              active={view.activeRemoteId === item.remoteId}
               onClick={() => navigate(item.path)}
             >
               {item.label}
-            </button>
+            </NavLink>
           ))}
         </nav>
-        <div data-testid="slot-sidebar" ref={sidebarRef} style={{ flex: 1 }} />
+        <div className="flex min-w-0 flex-col gap-6">
+          {/* slot regions carry no text colour or font: slot content brings its own classes */}
+          <div data-testid="slot-header" ref={headerRef} className="empty:hidden" />
+          {children}
+        </div>
+        <aside aria-label="Sidebar">
+          <div data-testid="slot-sidebar" ref={sidebarRef} className="flex flex-col gap-4" />
+        </aside>
       </div>
     </section>
   );

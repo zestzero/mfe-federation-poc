@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button, Card, CardContent, CardHeader, Checkbox } from "@poc/design-system";
 import { MockApiControls } from "@poc/test-support";
 
 type Props = {
@@ -30,44 +31,51 @@ export function ScenarioControls({ forceCleanupFail, onForceCleanupFailChange, o
   };
 
   return (
-    <section aria-label="Scenario controls" style={{ border: "1px solid #cbd5e1", padding: 12, borderRadius: 8 }}>
-      <h2>Scenario controls (fictional mock-api)</h2>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        <button
-          type="button"
-          data-testid="delay-orders"
-          disabled={busy}
-          onClick={() => run("delay orders 2500ms", () => controls.delay(2500))}
-        >
-          Delay REST orders 2.5s
-        </button>
-        <button
-          type="button"
-          data-testid="delay-graphql"
-          disabled={busy}
-          onClick={() => run("delay graphql 2500ms", () => controls.delay(2500))}
-        >
-          Delay GraphQL 2.5s
-        </button>
-        <button
-          type="button"
-          data-testid="fail-next-orders"
-          disabled={busy}
-          onClick={() => run("fail next orders", () => controls.failNext("/api/orders", 500))}
-        >
-          Fail next /api/orders
-        </button>
-        <button
-          type="button"
-          data-testid="reset-controls"
-          disabled={busy}
-          onClick={() => run("reset controls", () => controls.reset())}
-        >
-          Reset mock controls
-        </button>
-        <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <input
-            type="checkbox"
+    <Card aria-label="Scenario controls" role="region" data-testid="scenario-controls">
+      <CardHeader>
+        <h2 className="m-0 text-base font-semibold">Scenario controls (fictional mock-api)</h2>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="delay-orders"
+            disabled={busy}
+            onClick={() => run("delay orders 2500ms", () => controls.delay(2500))}
+          >
+            Delay REST orders 2.5s
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="delay-graphql"
+            disabled={busy}
+            onClick={() => run("delay graphql 2500ms", () => controls.delay(2500))}
+          >
+            Delay GraphQL 2.5s
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="fail-next-orders"
+            disabled={busy}
+            onClick={() => run("fail next orders", () => controls.failNext("/api/orders", 500))}
+          >
+            Fail next /api/orders
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            data-testid="reset-controls"
+            disabled={busy}
+            onClick={() => run("reset controls", () => controls.reset())}
+          >
+            Reset mock controls
+          </Button>
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
             data-testid="force-cleanup-fail"
             checked={forceCleanupFail}
             onChange={(event) => {
@@ -77,8 +85,12 @@ export function ScenarioControls({ forceCleanupFail, onForceCleanupFailChange, o
           />
           Force remote cleanup failure on next remount
         </label>
-      </div>
-      {message ? <p data-testid="scenario-message">{message}</p> : null}
-    </section>
+        {message ? (
+          <p data-testid="scenario-message" className="m-0 text-sm text-muted-foreground">
+            {message}
+          </p>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }

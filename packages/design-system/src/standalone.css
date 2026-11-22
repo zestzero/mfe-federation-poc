@@ -1,0 +1,5 @@
+/*
+ * Same content as shell.css (tokens + preflight), for running a remote alone on its own port in
+ * development. Not part of the federated production path.
+ */
+@import "./shell.css";

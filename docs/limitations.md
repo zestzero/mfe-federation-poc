@@ -25,6 +25,19 @@ A remote that is not blocked can still set a layout after the session reaches `e
 
 `ShellChrome` mirrors `path` into `location.hash` with `history.replaceState`, so no history entries are pushed: browser Back leaves the app instead of restoring an earlier `/orders/<id>` (which could belong to a previous account). A rejected or truncated hash path is written back to the current `path`. An external edit to the hash (typing in the address bar, a link) still fires `hashchange` and navigates through the usual validation.
 
+## Design system
+
+- **Duplicate utility CSS.** Every app builds its own utilities, so the same rules ship in the shell and in each remote. Harmless while the theme is identical.
+- **Version skew.** Component code is bundled per app, so independently deployed remotes can run different component versions. Only the CSS variables are shared at runtime. Remote CSS also declares global `:root,:host` Tailwind theme variables (spacing, type scale) in `@layer theme`, loaded after the shell's; apps on different Tailwind versions could restyle each other through those variables, so Tailwind must stay pinned to the same version across all apps.
+- **Unthemed remote under a foreign shell.** A remote mounted by a shell that does not load the design-system tokens stays usable but unthemed. There are no `var()` fallbacks, so backgrounds become transparent, colours inherit, radius becomes 0 (`calc(var(--radius) - 2px)` is invalid), shadows disappear and borders fall back to `currentColor`. Spacing and type still work because the remote ships its own `:root,:host{--spacing…}`.
+- **No CSS isolation in the same realm.** Remote CSS is global; remotes can restyle each other through shared class names. The shell owns preflight, so a remote cannot reset the page.
+- **Two component sets.** React and Vue components are kept in sync by shared `variants.ts` classes plus parity and type-level drift tests, not by one implementation.
+- **Check (e) waived.** `check:css --remote` has no assertion for a class used only in `@poc/design-system-vue`, because no such class exists (all Vue classes come from `variants.ts`). Add one if a component-local class is ever introduced.
+- **Engine literals stripped.** Tailwind emits colour literals inside `@property` and `@supports` blocks (for example `--tw-ring-offset-color:#fff`). The compiled-output guard strips those blocks before the literal check; a `remote.css` override cannot remove them.
+- **`check:css` needs a build first.** It reads `dist`. Root `pnpm check:css` runs it in every app and is the last step of `pnpm ci` (after `pnpm build`).
+- **Federated CSS.** No fix was needed: a CSS import in the exposed `mount` module is extracted as an expose CSS asset, listed in `mf-manifest.json`, and injected by the shell's MF runtime as a `<link>`. Verified in a browser in dev and statically in production builds (production remotes were not served in a browser). Whether the link is removed on unmount is unverified.
+- **Vue remote standalone.** Opening the Vue remote alone on 5002 throws `RUNTIME-006` (`loadShareSync` for `vue`). Not confirmed as pre-existing; the federated path is unaffected.
+
 ## SSR / native excluded
 
 Production SSR needs request-scoped session state. Native/WebView and cross-origin iframe messaging need adapters beyond this POC.
